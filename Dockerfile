@@ -1,24 +1,24 @@
-# Base image (OS)
+# Stage 1 - Builder
+FROM python:3.7 AS builder
 
-FROM python:3.9-slim
+WORKDIR /app
+COPY requirements.txt .
 
-# Working directory
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Stage 2 - Final (relatively smaller img)
+FROM python:3.7-slim
 
 WORKDIR /app
 
-# Copy src code to container
+# Copy installed packages from builder
+COPY --from=builder /usr/local/lib/python3.7/site-packages/ /usr/local/lib/python3.7/site-packages/
 
+# Copy app source code
 COPY . .
-
-# Run the build commands
-
-RUN pip install -r requirements.txt
-
-# expose port 80
-
+#attaching it to the port
+# Expose port (change if your Flask app uses 5000)
 EXPOSE 80
 
-# serve the app / run the app (keep it running)
-
-CMD ["python","run.py"]
-
+# Run the app 
+CMD ["python", "run.py"] 
